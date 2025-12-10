@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/**/*.php", "use": "@vercel/php@latest" }
-  ],
+  "functions": {
+    "api/server.php": { "runtime": "vercel-php@0.7.2" },
+    "api/*.php": { "runtime": "vercel-php@0.7.2" },
+    "api/**/*.php": { "runtime": "vercel-php@0.7.2" }
+  },
   "routes": [
     { "src": "/(.*\\.(?:css|js|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|map))", "dest": "Gran_Prebeo_Merchandise_System/$1" },
     { "src": "/(.*)", "dest": "api/server.php" }
