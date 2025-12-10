@@ -2,10 +2,11 @@
   "version": 2,
   "functions": {
     "api/**/*.php": {
-      "runtime": "vercel-php@0.6.0"
+      "runtime": "vercel-php@0.7.2"
     }
   },
   "routes": [
+    { "src": "/(.*\\.(?:css|js|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|map))", "dest": "/$1" },
     { "src": "/(.*)", "dest": "api/server.php" }
   ]
 }
