@@ -6,57 +6,9 @@ function get_db_connection(): mysqli
     if ($connection instanceof mysqli && $connection->ping()) {
         return $connection;
     }
+ 
 
-function ensure_users_table_exists(mysqli $connection): void
-{
-    $connection->query(
-        'CREATE TABLE IF NOT EXISTS users (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            first_name VARCHAR(100) NOT NULL,
-            last_name VARCHAR(100) NOT NULL,
-            username VARCHAR(100) NOT NULL,
-            password_hash VARCHAR(255) NOT NULL,
-            created_at DATETIME NOT NULL,
-            updated_at DATETIME NOT NULL,
-            UNIQUE KEY uq_users_username (username)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
-    );
-}
-
-function ensure_deliveries_schema_is_current(mysqli $connection): void
-{
-    $col1 = $connection->query("SHOW COLUMNS FROM deliveries LIKE 'delivery_tracking_id'");
-    if ($col1 !== false && $col1->num_rows === 0) {
-        $connection->query('ALTER TABLE deliveries ADD COLUMN delivery_tracking_id VARCHAR(50) NOT NULL AFTER tracking_number');
-    }
-    if ($col1 instanceof mysqli_result) { $col1->free(); }
-
-    $col2 = $connection->query("SHOW COLUMNS FROM deliveries LIKE 'courier'");
-    if ($col2 !== false && $col2->num_rows === 0) {
-        $connection->query('ALTER TABLE deliveries ADD COLUMN courier VARCHAR(80) NOT NULL AFTER address');
-    }
-    if ($col2 instanceof mysqli_result) { $col2->free(); }
-}
-
-function ensure_orders_schema_is_current(mysqli $connection): void
-{
-    $col = $connection->query("SHOW COLUMNS FROM orders LIKE 'delivery_address'");
-    if ($col !== false && $col->num_rows === 0) {
-        $connection->query('ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(255) NULL AFTER total_amount');
-    }
-    if ($col instanceof mysqli_result) {
-        $col->free();
-    }
-
-    // Ensure 'notes' column exists for older schemas
-    $colNotes = $connection->query("SHOW COLUMNS FROM orders LIKE 'notes'");
-    if ($colNotes !== false && $colNotes->num_rows === 0) {
-        $connection->query('ALTER TABLE orders ADD COLUMN notes TEXT NULL AFTER delivery_address');
-    }
-    if ($colNotes instanceof mysqli_result) {
-        $colNotes->free();
-    }
-}
+ 
 
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -120,6 +72,22 @@ function ensure_orders_schema_is_current(mysqli $connection): void
     return $connection;
 }
 
+function ensure_users_table_exists(mysqli $connection): void
+{
+    $connection->query(
+        'CREATE TABLE IF NOT EXISTS users (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            first_name VARCHAR(100) NOT NULL,
+            last_name VARCHAR(100) NOT NULL,
+            username VARCHAR(100) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            UNIQUE KEY uq_users_username (username)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+}
+
 function ensure_customers_table_exists(mysqli $connection): void
 {
     $connection->query(
@@ -138,6 +106,40 @@ function ensure_customers_table_exists(mysqli $connection): void
             UNIQUE KEY uq_customers_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+}
+
+function ensure_orders_schema_is_current(mysqli $connection): void
+{
+    $col = $connection->query("SHOW COLUMNS FROM orders LIKE 'delivery_address'");
+    if ($col !== false && $col->num_rows === 0) {
+        $connection->query('ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(255) NULL AFTER total_amount');
+    }
+    if ($col instanceof mysqli_result) {
+        $col->free();
+    }
+
+    $colNotes = $connection->query("SHOW COLUMNS FROM orders LIKE 'notes'");
+    if ($colNotes !== false && $colNotes->num_rows === 0) {
+        $connection->query('ALTER TABLE orders ADD COLUMN notes TEXT NULL AFTER delivery_address');
+    }
+    if ($colNotes instanceof mysqli_result) {
+        $colNotes->free();
+    }
+}
+
+function ensure_deliveries_schema_is_current(mysqli $connection): void
+{
+    $col1 = $connection->query("SHOW COLUMNS FROM deliveries LIKE 'delivery_tracking_id'");
+    if ($col1 !== false && $col1->num_rows === 0) {
+        $connection->query('ALTER TABLE deliveries ADD COLUMN delivery_tracking_id VARCHAR(50) NOT NULL AFTER tracking_number');
+    }
+    if ($col1 instanceof mysqli_result) { $col1->free(); }
+
+    $col2 = $connection->query("SHOW COLUMNS FROM deliveries LIKE 'courier'");
+    if ($col2 !== false && $col2->num_rows === 0) {
+        $connection->query('ALTER TABLE deliveries ADD COLUMN courier VARCHAR(80) NOT NULL AFTER address');
+    }
+    if ($col2 instanceof mysqli_result) { $col2->free(); }
 }
 
 function ensure_invoices_table_exists(mysqli $connection): void
