@@ -60,13 +60,36 @@ function ensure_orders_schema_is_current(mysqli $connection): void
 
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-    // Read connection from environment for cloud deployments (e.g., Vercel, Render)
-    $host = getenv('DB_HOST') !== false ? getenv('DB_HOST') : 'localhost';
-    $user = getenv('DB_USER') !== false ? getenv('DB_USER') : 'root';
-    $password = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
-    $database = getenv('DB_NAME') !== false ? getenv('DB_NAME') : 'gran_prebeo';
-    $port = getenv('DB_PORT') !== false && ctype_digit((string)getenv('DB_PORT')) ? (int)getenv('DB_PORT') : 3306;
-    $socket = getenv('DB_SOCKET') !== false ? getenv('DB_SOCKET') : null;
+    // Prefer a single DATABASE_URL style var if present (e.g., mysql://user:pass@host:3306/dbname)
+    $url = getenv('CLEARDB_DATABASE_URL');
+    if ($url === false || $url === '') { $url = getenv('JAWSDB_URL'); }
+    if ($url === false || $url === '') { $url = getenv('JAWSDB_MARIA_URL'); }
+    if ($url === false || $url === '') { $url = getenv('DATABASE_URL'); }
+
+    $host = 'localhost';
+    $user = 'root';
+    $password = '';
+    $database = 'gran_prebeo';
+    $port = 3306;
+    $socket = (getenv('DB_SOCKET') !== false) ? getenv('DB_SOCKET') : null;
+
+    if ($url && is_string($url)) {
+        $parts = parse_url($url);
+        if (is_array($parts)) {
+            $host = $parts['host'] ?? $host;
+            if (!empty($parts['port'])) { $port = (int)$parts['port']; }
+            if (!empty($parts['user'])) { $user = $parts['user']; }
+            if (!empty($parts['pass'])) { $password = $parts['pass']; }
+            if (!empty($parts['path'])) { $database = ltrim($parts['path'], '/'); }
+        }
+    } else {
+        // Read connection from legacy env vars
+        $host = getenv('DB_HOST') !== false ? getenv('DB_HOST') : $host;
+        $user = getenv('DB_USER') !== false ? getenv('DB_USER') : $user;
+        $password = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : $password;
+        $database = getenv('DB_NAME') !== false ? getenv('DB_NAME') : $database;
+        $port = getenv('DB_PORT') !== false && ctype_digit((string)getenv('DB_PORT')) ? (int)getenv('DB_PORT') : $port;
+    }
 
     $connection = new mysqli($host, $user, $password, '', $port, $socket);
 
