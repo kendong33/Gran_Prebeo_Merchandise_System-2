@@ -3,9 +3,7 @@
   "functions": {
     "api/server.php": {
       "runtime": "vercel-php@0.7.2",
-      "includeFiles": [
-        "Gran_Prebeo_Merchandise_System/**"
-      ]
+      "includeFiles": "Gran_Prebeo_Merchandise_System/**"
     }
   },
   "routes": [
