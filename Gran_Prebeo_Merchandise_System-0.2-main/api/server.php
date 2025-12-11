@@ -4,12 +4,15 @@
 
 declare(strict_types=1);
 
-$root = realpath(__DIR__);
-if ($root === false) {
+$repoRoot = realpath(__DIR__ . '/..');
+if ($repoRoot === false) {
     http_response_code(500);
     echo 'Server misconfigured';
     exit;
 }
+
+// Start from repository root
+$root = $repoRoot;
 
 // If the app lives inside a subfolder, route into it
 $appSubdir = $root . '/Gran_Prebeo_Merchandise_System';
@@ -20,9 +23,16 @@ if (is_dir($appSubdir)) {
     }
 }
 
-$uri = $_SERVER['REQUEST_URI'] ?? '/';
-$path = parse_url($uri, PHP_URL_PATH) ?: '/';
+$original = $_SERVER['HTTP_X_VERCEL_ORIGINAL_PATHNAME']
+    ?? $_SERVER['HTTP_X_FORWARDED_URI']
+    ?? ($_SERVER['REQUEST_URI'] ?? '/');
+$path = parse_url($original, PHP_URL_PATH) ?: '/';
 $path = urldecode($path);
+
+// When Vercel rewrites to /api/server.php, treat it as site root
+if ($path === '/api/server.php' || $path === 'api/server.php') {
+    $path = '/';
+}
 
 // Default route → index.php
 if ($path === '' || $path === '/') {
