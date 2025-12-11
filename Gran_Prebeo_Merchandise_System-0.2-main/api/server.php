@@ -29,9 +29,14 @@ $original = $_SERVER['HTTP_X_VERCEL_ORIGINAL_PATHNAME']
 $path = parse_url($original, PHP_URL_PATH) ?: '/';
 $path = urldecode($path);
 
-// When Vercel rewrites to /api/server.php, treat it as site root
+// Normalize any '/api/*' rewritten paths back to app root
 if ($path === '/api/server.php' || $path === 'api/server.php') {
     $path = '/';
+} elseif (strpos($path, '/api/') === 0) {
+    $path = substr($path, 4);
+    if ($path === '' || $path[0] !== '/') {
+        $path = '/' . $path;
+    }
 }
 
 // Default route → index.php
